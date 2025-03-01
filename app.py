@@ -2,7 +2,7 @@ import image_utils, text_utils
 from PIL import Image
 
 if __name__ == '__main__':
-    image_path = "image.png"
+    image_path = "Dummy/image.png"
     image = Image.open(image_path)
     text_content = image_utils.scan_image_for_text(image)
 
