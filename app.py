@@ -25,8 +25,7 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 
-def extract_text_from_image(image_path):
-    image = Image.open(image_path)
+def extract_text_from_image(image):
     text_content = image_utils.scan_image_for_text(image)
 
     
@@ -89,7 +88,8 @@ def get_formatted_text_info(text):
 
 
 if __name__ == '__main__':
-    image_path = './Dummy/image.png'
+    image_path = './test.jpg'
+    image = Image.open(image_path)
     original = extract_text_from_image(image_path)
     result = get_formatted_text_info(original)
     print(result)
