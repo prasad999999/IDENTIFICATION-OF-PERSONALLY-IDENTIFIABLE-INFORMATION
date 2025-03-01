@@ -11,8 +11,7 @@ for resource in nltk_resources:
     except LookupError:
         nltk.download(resource)
 
-if __name__ == '__main__':
-    image_path = "Dummy/image.png"
+def extract_text_from_image(image_path):
     image = Image.open(image_path)
     text_content = image_utils.scan_image_for_text(image)
 
@@ -41,6 +40,11 @@ if __name__ == '__main__':
 
     intelligible = unmodified_words + grayscaled + auto_rotate + monochromed + mean_threshold + gaussian_threshold + deskewed_1 + deskewed_2 + deskewed_3
 
+    return original, intelligible
+
+if __name__ == '__main__':
+    image_path = './Dummy/image.png'
+    original, intelligible = extract_text_from_image(image_path)
     print(original)
     print('\n\n')
     print(intelligible)
