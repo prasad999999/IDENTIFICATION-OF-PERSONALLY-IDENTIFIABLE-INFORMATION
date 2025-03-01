@@ -6,7 +6,7 @@ import cv2
 import easyocr
 
 def scan_image_for_text(image):
-    reader = easyocr.Reader(['en'])  
+    reader = easyocr.Reader(['en'])  # Initialize EasyOCR 
     image = np.array(image)
     
     def extract_text(img):

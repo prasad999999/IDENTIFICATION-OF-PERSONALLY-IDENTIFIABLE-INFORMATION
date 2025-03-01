@@ -6,3 +6,8 @@ deskew
 easyocr
 torch
 torchvision
+spacy
+nltk
+rapidfuzz
+pdf2image
+subprocess
