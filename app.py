@@ -1,4 +1,4 @@
-import image_utils, text_utils
+import image_utils
 from PIL import Image
 import re, json, nltk, itertools, spacy, difflib, math
 from nltk import word_tokenize, pos_tag, ne_chunk
@@ -64,7 +64,8 @@ def get_formatted_text_info(text):
     
     prompt = f"""
     Extract the following details from the given text and return a JSON response:
-    - document_type (e.g., Aadhaar Card-12digit, Voter ID-10digit, Driving License-15 digit, Debit Card-16 digit, Credit Card-16 digit, PAN Card-10 digit, Passport-8 digit)
+    - document_type (e.g., Aadhaar Card (12digit), Voter ID (10 digit), Driving License (15 digit), Debit Card (16 digit), Credit Card (16 digit), PAN Card (10 digit), Passport (8 digit))
+    - name
     - country
     - Document id (if applicable)
     - email
@@ -88,9 +89,9 @@ def get_formatted_text_info(text):
 
 
 if __name__ == '__main__':
-    image_path = './test.jpg'
+    image_path = './Dummy/image.png'
     image = Image.open(image_path)
-    original = extract_text_from_image(image_path)
+    original = extract_text_from_image(image)
     result = get_formatted_text_info(original)
     print(result)
     
