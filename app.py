@@ -42,11 +42,41 @@ def extract_text_from_image(image_path):
 
     return original, intelligible
 
+def get_formatted_text_info(original, intelligible):
+    rules = text_utils.get_regexes()
+    addresses = text_utils.regional_pii(original)
+    emails = text_utils.email_pii(original, rules)
+    phone_numbers = text_utils.phone_pii(original, rules)
+
+    keywords_scores = text_utils.keywords_classify_pii(rules, intelligible)
+    score = max(keywords_scores.values())
+    pii_class = list(keywords_scores.keys())[list(keywords_scores.values()).index(score)]
+
+    country_of_origin = rules[pii_class]["region"]
+    identifiers = text_utils.id_card_numbers_pii(original, rules)
+
+    if score < 5:
+        pii_class = None
+
+    if len(identifiers) != 0:
+        identifiers = identifiers[0]["result"]
+
+    result = {
+        "pii_class" : pii_class,
+        "score" : score,
+        "country_of_origin": country_of_origin,
+        "identifiers" : identifiers,
+        "emails" : emails,
+        "phone_numbers" : phone_numbers,
+        "addresses" : addresses
+    }
+    return result
+
+
 if __name__ == '__main__':
     image_path = './Dummy/image.png'
     original, intelligible = extract_text_from_image(image_path)
-    print(original)
-    print('\n\n')
-    print(intelligible)
+    result = get_formatted_text_info(original, intelligible)
+    print(result)
     
 
