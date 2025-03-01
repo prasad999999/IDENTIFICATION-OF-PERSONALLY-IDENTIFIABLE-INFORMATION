@@ -4,9 +4,10 @@ from deskew import determine_skew
 import numpy as np
 import cv2
 import easyocr
+import text_utils
 
 def scan_image_for_text(image):
-    reader = easyocr.Reader(['en'])  # Initialize EasyOCR 
+    reader = easyocr.Reader(['en'])  # Initialize EasyOCR reader
     image = np.array(image)
     
     def extract_text(img):
@@ -64,17 +65,52 @@ def scan_image_for_text(image):
         print("Couldn't apply gaussian threshold")
         image_text_gaussian_threshold = ""
     
+
+    try:
+        # 6a. Deskew one
+        #print ("First attempt at de-skewing image and reading text")
+        angle = determine_skew(image)
+        rotated = rotate(image, angle, resize=True) * 255
+        image = rotated.astype(np.uint8)
+        image_text_deskewed_1 = extract_text(image)
+        #cv2.imwrite("image6.png", image)
+
+        # 6b. Deskew two
+        #print ("Second attempt at de-skewing image and reading text")
+        angle = determine_skew(image)
+        rotated = rotate(image, angle, resize=True) * 255
+        image = rotated.astype(np.uint8)
+        image_text_deskewed_2 = extract_text(image)
+        #cv2.imwrite("image7.png", image)
+
+        # 6c. Deskew three
+        #print ("Third attempt at de-skewing image and reading text")
+        angle = determine_skew(image)
+        rotated = rotate(image, angle, resize=True) * 255
+        image = rotated.astype(np.uint8)
+        image_text_deskewed_3 = extract_text(image)
+        #cv2.imwrite("image8.png", image)
+    except: 
+        print ("Couldn't deskew image")
+        image_text_deskewed_1 = ""
+        image_text_deskewed_2 = ""
+        image_text_deskewed_3 = ""
+    
+
     return {
         "unmodified": image_text_unmodified,
         "auto_rotate": image_text_auto_rotate,
         "grayscaled": image_text_grayscaled,
         "monochromed": image_text_monochromed,
         "mean_threshold": image_text_mean_threshold,
-        "gaussian_threshold": image_text_gaussian_threshold
+        "gaussian_threshold": image_text_gaussian_threshold,
+        "deskewed_1": image_text_deskewed_1,
+        "deskewed_2": image_text_deskewed_2,
+        "deskewed_3": image_text_deskewed_3,
     }
 
-image_path = "./Dummy/image.png"
-image = Image.open(image_path)
+# image_path = "Dummy/image.png"
+# image = Image.open(image_path)
 
-results = scan_image_for_text(image)
-print(results)
+# original,result = scan_image_for_text(image)
+# print(original)
