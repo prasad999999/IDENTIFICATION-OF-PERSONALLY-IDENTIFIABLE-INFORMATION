@@ -1,5 +1,15 @@
 import image_utils, text_utils
 from PIL import Image
+import re, json, nltk, itertools, spacy, difflib, math
+from nltk import word_tokenize, pos_tag, ne_chunk
+from nltk.corpus import stopwords
+nltk_resources = ["punkt", "maxent_ne_chunker_tab", "words", "averaged_perceptron_tagger", "stopwords"]
+
+for resource in nltk_resources:
+    try:
+        nltk.data.find(f"corpora/{resource}")
+    except LookupError:
+        nltk.download(resource)
 
 if __name__ == '__main__':
     image_path = "Dummy/image.png"

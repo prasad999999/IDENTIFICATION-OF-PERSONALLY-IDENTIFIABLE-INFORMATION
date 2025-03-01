@@ -116,41 +116,41 @@ def keywords_classify_pii(rules, intelligible_text_list):
 
     return scores
 
-if __name__ == '__main__':
-    original = """ THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR, BAIGANWADI; Govamdi, MUMBAI Ph 400M4} 'PBUtkRrv ID& SignaturefThumb E22tyRpc MahO} 2008261 Impression of Hokder Nane
-THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE7{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR; BAIGANWADI; Govamdi MUMBAI Ph 400M4] 'PBUFkkrv ID& SignaturefThumb EotYRp MahO} 2008261 Impression of Hokder Nane
-THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI : 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE7{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG Name KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR, BAIGANWADI Govamdi MUMBAI Ph 8 PBU Ewa rv 400M4] ID& SignaturefThumb BL2tYRUNDG MahO} 2008261 Impression of Hokder
-THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No Mk0} Zoo800o0d000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-01-7011 (TR} AED 15-03-2008 Fo8* {6 12} AUTHORISATON TO DRIVE FOLLOWNG CLASS OF VEHiCLeS THROUGHOUT INDIA COv DI MCWG 24-01-2007 LMv 24-01-007 TRANS 10-0+-2008 DOB 01-12.1987 BG MS MH Kiah Spmd#Khah Khan Md Kkhahrnam Mair UaioaNWAD, 13 RB [; T14 Snraluc aufoder Kvn
-B01 * THe UNION OF INDIA "#Karnanertextlrsh MAHARASHTRA STATE MotOR DRIVING LICENCE  Palid No MHo3 Zoo80oo00000 44DI 24-01-2007 23-01-2027, (NT) 5' 09- 03-7011 '8- AEO 15 0}-2008 338*i@ AUTHORISATON TODRIVE FOLLOWING CLASS OF VEHCLES THROUGHOUT INDIA COv_6 DOhW MCWG 24-01-2007_ LMV +#. 24-01-2007 TRANS 10-03-2008 DOB 01-12.1987 Kame KHAH KHAH SDWo:JAKHAH KHAN At KKHAHRAMAH NAGAR BAIGANWADI; Covaydl umbal  X9# E peu Fwa PN:Mpn EAENRaDs: wa 40%: Mho} 2008261 Spresyra{bypode; Ti _
-ATHE UNION OF INDIA Mgtal MAHARASHTRA STATE MOTOR DRIVING LICENCE; DL No MHOs 20080oooQ000 40 DOI ; 24-01-2007 Valid 23.012027  (NT 09-03-2011_ AED 4415-03-2008"' RoR3S AUTHORISATON TO DRIVE FOLLOWING CLASS OF.VEHCLES THROUGHOUT INDIA COvayr-DOW:N MCYG 24* 01-2007 _ LmVA  24-01*2007 TRANS 10.93.008' DOB 01*12*1987. Nano KHAN KHAN72 SpMO:JAKHAN KHAM _ Ad:KKHANRAMAM NAGAR; BAIGANWADI; Covnidl KumBAI: 8x03 PRQERR PIN uie EayRpS; Ifm IDJa Kaxo} 2008261 Signeturg Gupoder YX #2" 3 """
-    intelligible = string_tokenizer(original)
-    text = original
-    rules = get_regexes()
+# if __name__ == '__main__':
+#     original = """ THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR, BAIGANWADI; Govamdi, MUMBAI Ph 400M4} 'PBUtkRrv ID& SignaturefThumb E22tyRpc MahO} 2008261 Impression of Hokder Nane
+# THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE7{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR; BAIGANWADI; Govamdi MUMBAI Ph 400M4] 'PBUFkkrv ID& SignaturefThumb EotYRp MahO} 2008261 Impression of Hokder Nane
+# THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No MHO3 200800000000 DOI : 24-01-2007 Valid Till 23-01-2027 (NT) 09-03-2011 (TR) AED 15-03-2008 FOE7{6 (2) O4WORCSESOH TO DRIVE FOLLOWING CLASS VEHICLES THROUGHOUT INDIA cOv DOI MCWG 24-01-2007 LMV 24-01-2007 TRANS 10-03-2008 DOB 01-12-1987 BG Name KHAN KHAN SIWd JA KHAN KHAN kd KKHANRAMAN NAGAR, BAIGANWADI Govamdi MUMBAI Ph 8 PBU Ewa rv 400M4] ID& SignaturefThumb BL2tYRUNDG MahO} 2008261 Impression of Hokder
+# THE UNION OF INDIA MAHARASHTRA STATE MOTOR DRIVING LICENCE DL No Mk0} Zoo800o0d000 DOI 24-01-2007 Valid Till 23-01-2027 (NT) 09-01-7011 (TR} AED 15-03-2008 Fo8* {6 12} AUTHORISATON TO DRIVE FOLLOWNG CLASS OF VEHiCLeS THROUGHOUT INDIA COv DI MCWG 24-01-2007 LMv 24-01-007 TRANS 10-0+-2008 DOB 01-12.1987 BG MS MH Kiah Spmd#Khah Khan Md Kkhahrnam Mair UaioaNWAD, 13 RB [; T14 Snraluc aufoder Kvn
+# B01 * THe UNION OF INDIA "#Karnanertextlrsh MAHARASHTRA STATE MotOR DRIVING LICENCE  Palid No MHo3 Zoo80oo00000 44DI 24-01-2007 23-01-2027, (NT) 5' 09- 03-7011 '8- AEO 15 0}-2008 338*i@ AUTHORISATON TODRIVE FOLLOWING CLASS OF VEHCLES THROUGHOUT INDIA COv_6 DOhW MCWG 24-01-2007_ LMV +#. 24-01-2007 TRANS 10-03-2008 DOB 01-12.1987 Kame KHAH KHAH SDWo:JAKHAH KHAN At KKHAHRAMAH NAGAR BAIGANWADI; Covaydl umbal  X9# E peu Fwa PN:Mpn EAENRaDs: wa 40%: Mho} 2008261 Spresyra{bypode; Ti _
+# ATHE UNION OF INDIA Mgtal MAHARASHTRA STATE MOTOR DRIVING LICENCE; DL No MHOs 20080oooQ000 40 DOI ; 24-01-2007 Valid 23.012027  (NT 09-03-2011_ AED 4415-03-2008"' RoR3S AUTHORISATON TO DRIVE FOLLOWING CLASS OF.VEHCLES THROUGHOUT INDIA COvayr-DOW:N MCYG 24* 01-2007 _ LmVA  24-01*2007 TRANS 10.93.008' DOB 01*12*1987. Nano KHAN KHAN72 SpMO:JAKHAN KHAM _ Ad:KKHANRAMAM NAGAR; BAIGANWADI; Covnidl KumBAI: 8x03 PRQERR PIN uie EayRpS; Ifm IDJa Kaxo} 2008261 Signeturg Gupoder YX #2" 3 """
+#     intelligible = string_tokenizer(original)
+#     text = original
+#     rules = get_regexes()
 
-    addresses = regional_pii(text)
-    emails = email_pii(text, rules)
-    phone_numbers = phone_pii(text, rules)
+#     addresses = regional_pii(text)
+#     emails = email_pii(text, rules)
+#     phone_numbers = phone_pii(text, rules)
 
-    keywords_scores = keywords_classify_pii(rules, intelligible)
-    score = max(keywords_scores.values())
-    pii_class = list(keywords_scores.keys())[list(keywords_scores.values()).index(score)]
+#     keywords_scores = keywords_classify_pii(rules, intelligible)
+#     score = max(keywords_scores.values())
+#     pii_class = list(keywords_scores.keys())[list(keywords_scores.values()).index(score)]
 
-    country_of_origin = rules[pii_class]["region"]
-    identifiers = id_card_numbers_pii(text, rules)
+#     country_of_origin = rules[pii_class]["region"]
+#     identifiers = id_card_numbers_pii(text, rules)
 
-    if score < 5:
-        pii_class = None
+#     if score < 5:
+#         pii_class = None
 
-    if len(identifiers) != 0:
-        identifiers = identifiers[0]["result"]
+#     if len(identifiers) != 0:
+#         identifiers = identifiers[0]["result"]
 
-    result = {
-        "pii_class" : pii_class,
-        "score" : score,
-        "country_of_origin": country_of_origin,
-        "identifiers" : identifiers,
-        "emails" : emails,
-        "phone_numbers" : phone_numbers,
-        "addresses" : addresses
-    }
-    print(result)
+#     result = {
+#         "pii_class" : pii_class,
+#         "score" : score,
+#         "country_of_origin": country_of_origin,
+#         "identifiers" : identifiers,
+#         "emails" : emails,
+#         "phone_numbers" : phone_numbers,
+#         "addresses" : addresses
+#     }
+#     print(result)
