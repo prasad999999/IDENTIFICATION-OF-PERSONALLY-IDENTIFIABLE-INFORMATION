@@ -10,3 +10,4 @@ spacy
 nltk
 google-generativeai
 python-dotenv
+flask
