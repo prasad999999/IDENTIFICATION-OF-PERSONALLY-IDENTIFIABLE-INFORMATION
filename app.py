@@ -152,8 +152,14 @@ def mask_image(image_path, result_json):
                 x_max = int(bottom_right[0])
                 y_max = int(bottom_right[1])
                 
-                # Apply a black mask over the detected text
-                cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 0, 0), -1)
+                # Apply a blur mask over the detected text
+                roi = image[y_min:y_max, x_min:x_max]
+
+                # Apply Gaussian Blur to the ROI
+                blurred_roi = cv2.GaussianBlur(roi, (15, 15), 30)
+
+                # Replace the original ROI with the blurred ROI
+                image[y_min:y_max, x_min:x_max] = blurred_roi
                 break
                 
     cv2.imwrite("masked_document.jpg", image)
