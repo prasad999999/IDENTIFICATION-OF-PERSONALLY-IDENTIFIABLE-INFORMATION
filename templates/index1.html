@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <header class="navbar sticky-top flex-md-nowrap">
+    <header class="navbar sticky-top flex-md-nowrap" style="position: relative;">
         <div class="col-md-3 col-lg-3 me-0 px-3 fs-6">
             <a class="navbar-brand" href="/">
                 <i class="bi-shield-lock"></i> PII Detector
@@ -26,7 +26,7 @@
         <!-- Flash Messages -->
         <div class="container mt-3">
             {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show">
+            <div class="alert {% if category == 'error' %}alert-danger{% elif category == 'success' %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -38,19 +38,18 @@
         </div>
     </header>
 
-    <div class="container-fluid">
+    <div class="container-fluid" style="position: relative">
         <div class="row">
             <nav id="sidebarMenu" class="col-md-3 col-lg-3 d-md-block sidebar collapse">
                 <div class="position-sticky py-4 px-3 sidebar-sticky">
                     <ul class="nav flex-column h-100">
-                        <!-- Updated Navigation Items -->
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="/">
+                        <li class="nav-item {% if request.endpoint == 'home' %}active{% endif %}">
+                            <a class="nav-link" href="{{ url_for('home') }}" {% if request.endpoint=='home' %}aria-current="page" {% endif %}>
                                 <i class="bi-house-fill me-2"></i> Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
+                        <li class="nav-item {% if request.endpoint == 'view_documents' %}active{% endif %}">
+                            <a class="nav-link" href="{{ url_for('view_documents') }}" {% if request.endpoint=='view_documents' %}aria-current="page" {% endif %}>
                                 <i class="bi-file-earmark-text me-2"></i> Documents
                             </a>
                         </li>
@@ -80,63 +79,63 @@
                 </div>
             </nav>
 
-            <main class="main-wrapper col-md-9 ms-sm-auto py-4 col-lg-9 px-md-4 border-start">
-                <div class="title-group mb-3">
-                    <h1 class="h2 mb-0">Document Analysis</h1>
+            <main class="main-wrapper col-md-9 ms-sm-auto py-4 col-lg-9 px-md-4 border-start ">
+                <div class="title-group mb-3 ">
+                    <h1 class="h2 mb-0 ">Document Analysis</h1>
                 </div>
 
-                <div class="row my-4">
-                    <div class="col-12">
+                <div class="row my-4 ">
+                    <div class="col-12 ">
                         <!-- Updated Data Preview Section -->
-                        <div class="custom-block custom-block-balance">
-                            <h2 class="mt-2 mb-3">Processed Documents</h2>
-                            <div class="bottom-data">
-                                <div class="preview-section">
-                                    <div class="header">
-                                        <i class="bi-file-text"></i>
+                        <div class="custom-block custom-block-balance ">
+                            <h2 class="mt-2 mb-3 ">Processed Documents</h2>
+                            <div class="bottom-data ">
+                                <div class="preview-section ">
+                                    <div class="header ">
+                                        <i class="bi-file-text "></i>
                                         <h3>Detected PII Information</h3>
                                     </div>
-                                    <div id="pii-results">
+                                    <div id="pii-results ">
                                         {% if preview_data %}
-                                        <div id="document-preview">
-                                            <img src="{{ preview_data.preview_url }}" class="img-fluid mb-3" style="max-height: 400px;">
+                                        <div id="document-preview ">
+                                            <img src="{{ preview_data.preview_url }} " class="img-fluid mb-3 " style="max-height: 400px; ">
                                             <div class="action-buttons">
                                                 <form action="/mask" method="POST">
                                                     <input type="hidden" name="user_id" value="{{ preview_data.user_id }}">
                                                     <input type="hidden" name="filename" value="{{ preview_data.filename }}">
-                                                    <button type="submit" class="btn btn-success">
+                                                    <button type="submit" class="btn btn-success btn-choose " style="height: 40px; width: 200px;">
                                                         <i class="bi-eye-slash"></i> Mask PII
                                                     </button>
                                                 </form>
 
                                                 <!-- Add Proceed Button -->
                                                 <form action="/proceed" method="POST">
-                                                    <button type="submit" class="btn btn-primary">
+                                                    <button type="submit" class="btn btn-primary btn-choose" style="height: 40px; width: 200px;">
                                                         <i class="bi-check-circle"></i> Proceed
                                                     </button>
                                                 </form>
 
                                                 <form action="/cancel" method="POST">
-                                                    <button type="submit" class="btn btn-danger">
+                                                    <button type="submit" class="btn btn-danger btn-choose" style="height: 40px; width: 200px;">
                                                         <i class="bi-trash"></i> Cancel
                                                     </button>
                                                 </form>
                                             </div>
-                                            <div class="mt-3">
+                                            <div class="mt-3 ">
                                                 <h5>Extracted Information:</h5>
-                                                <ul class="list-group">
+                                                <ul class="list-group ">
                                                     {% for key, value in preview_data.processed_data.items() %}
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <span class="text-capitalize">{{ key }}</span>
-                                                        <span class="badge bg-primary rounded-pill">{{ value or 'N/A' }}</span>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center ">
+                                                        <span class="text-capitalize ">{{ key }}</span>
+                                                        <span class="badge bg-primary rounded-pill ">{{ value or 'N/A' }}</span>
                                                     </li>
                                                     {% endfor %}
                                                 </ul>
                                             </div>
                                         </div>
                                         {% else %}
-                                        <div class="no-data-message">
-                                            <i class="bi-file-earmark-excel"></i>
+                                        <div class="no-data-message ">
+                                            <i class="bi-file-earmark-excel "></i>
                                             <p>No documents processed yet</p>
                                             <p>Upload a document to view PII detection results</p>
                                         </div>
@@ -147,10 +146,10 @@
                         </div>
 
                         <!-- Audit Log Section -->
-                        <div class="custom-block bg-white mt-4">
-                            <h5 class="mb-4">Audit History</h5>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
+                        <div class="custom-block bg-white mt-4 ">
+                            <h5 class="mb-4 ">Audit History</h5>
+                            <div class="table-responsive ">
+                                <table class="table table-hover ">
                                     <thead>
                                         <tr>
                                             <th>Timestamp</th>
@@ -165,7 +164,7 @@
                                             <td>2024-03-15 14:30</td>
                                             <td>USER_001</td>
                                             <td>Aadhaar Card</td>
-                                            <td><span class="badge bg-success">Processed</span></td>
+                                            <td><span class="badge bg-success ">Processed</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -177,24 +176,24 @@
         </div>
     </div>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 col-12">
-                    <p class="copyright-text">Copyright © PII Detection System 2024</p>
+    <footer class="site-footer ">
+        <div class="container ">
+            <div class="row ">
+                <div class="col-lg-12 col-12 ">
+                    <p class="copyright-text ">Copyright © TechnoHackers 2024</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <!-- JavaScript Files -->
-    <script src="../static/js/jquery.min.js"></script>
-    <script src="../static/js/bootstrap.bundle.min.js"></script>
-    <script src="../static/js/apexcharts.min.js"></script>
-    <script src="../static/js/custom.js"></script>
+    <script src="../static/js/jquery.min.js "></script>
+    <script src="../static/js/bootstrap.bundle.min.js "></script>
+    <script src="../static/js/apexcharts.min.js "></script>
+    <script src="../static/js/custom.js "></script>
 
     <!-- Simplified Chart Initialization -->
-    <script type="text/javascript">
+    <script type="text/javascript ">
         // Initialize empty chart (update with real data later)
         var options = {
             series: [],
@@ -206,7 +205,7 @@
                 categories: []
             }
         };
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        var chart = new ApexCharts(document.querySelector("#chart "), options);
         chart.render();
     </script>
 </body>

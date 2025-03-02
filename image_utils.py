@@ -4,7 +4,6 @@ from deskew import determine_skew
 import numpy as np
 import cv2
 import easyocr
-import text_utils
 
 def scan_image_for_text(image):
     reader = easyocr.Reader(['en'])  # Initialize EasyOCR reader

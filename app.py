@@ -1,29 +1,26 @@
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, session
 import image_utils
 from PIL import Image
-import re, json, nltk, itertools, spacy, difflib, math, cv2, easyocr
-import numpy as np
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, session
-from werkzeug.utils import secure_filename
-from pathlib import Path
+import re, json, nltk, itertools, spacy, difflib, math
 from nltk import word_tokenize, pos_tag, ne_chunk
 from nltk.corpus import stopwords
+from werkzeug.utils import secure_filename
 nltk_resources = ["punkt", "maxent_ne_chunker_tab", "words", "averaged_perceptron_tagger", "stopwords"]
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 import csv
+from pathlib import Path
+import traceback
+from datetime import datetime
+import cv2
+import easyocr
 
-for resource in nltk_resources:
-    try:
-        nltk.data.find(f"corpora/{resource}")
-    except LookupError:
-        nltk.download(resource)
-
-load_dotenv()
 
 app = Flask(__name__)
 
 app.secret_key = os.environ.get('FLASK_SECRET_KEY') or os.urandom(24).hex()
+
 
 @app.route('/')
 def home():
@@ -32,7 +29,17 @@ def home():
     return render_template('index1.html', preview_data=preview_data)
 
 
-CSV_PATH = Path("data/finaldata.csv")
+for resource in nltk_resources:
+    try:
+        nltk.data.find(f"corpora/{resource}")
+    except LookupError:
+        nltk.download(resource)
+
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+CSV_PATH = Path("data/finaldata.csv")  # Better path handling
+
 UPLOAD_FOLDER = "uploads"
 CSV_FILENAME = "finaldata.csv"
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
@@ -48,94 +55,53 @@ def sanitize_user_id(user_id):
 
 
 
-# Configure API with Free Google Gemini Model
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    raise ValueError("❌ GEMINI_API_KEY is missing. Check your .env file.")
-
-genai.configure(api_key=api_key)
-
-
-def extract_text_from_image(image):
-    text_content = image_utils.scan_image_for_text(image)
-
-    
-    image_text_unmodified = text_content["unmodified"]
-    image_text_auto_rotate = text_content["auto_rotate"]
-    image_text_grayscaled = text_content["grayscaled"]
-    image_text_monochromed = text_content["monochromed"]
-    image_text_mean_threshold = text_content["mean_threshold"]
-    image_text_gaussian_threshold = text_content["gaussian_threshold"]
-    image_text_deskewed_1 = text_content["deskewed_1"]
-    image_text_deskewed_2 = text_content["deskewed_2"]
-    image_text_deskewed_3 = text_content["deskewed_3"]
-
-    # unmodified_words = text_utils.string_tokenizer(image_text_unmodified)
-    # grayscaled = text_utils.string_tokenizer(image_text_auto_rotate)
-    # auto_rotate = text_utils.string_tokenizer(image_text_grayscaled)
-    # monochromed = text_utils.string_tokenizer(image_text_monochromed)
-    # mean_threshold = text_utils.string_tokenizer(image_text_mean_threshold)
-    # gaussian_threshold = text_utils.string_tokenizer(image_text_gaussian_threshold)
-    # deskewed_1 = text_utils.string_tokenizer(image_text_deskewed_1)
-    # deskewed_2 = text_utils.string_tokenizer(image_text_deskewed_2)
-    # deskewed_3 = text_utils.string_tokenizer(image_text_deskewed_3)
-
-    original = image_text_unmodified + "\n" + image_text_auto_rotate + "\n" + image_text_grayscaled + "\n" + image_text_monochromed + "\n" + image_text_mean_threshold + "\n" + image_text_gaussian_threshold + "\n" + image_text_deskewed_1 + "\n" + image_text_deskewed_2 + "\n" +  image_text_deskewed_3
-
-    print('\n')
-    print(original)
-    print('\n')
-
-    # intelligible = unmodified_words + grayscaled + auto_rotate + monochromed + mean_threshold + gaussian_threshold + deskewed_1 + deskewed_2 + deskewed_3
-
-    return original
+def perform_ocr(image_path):
+    """Extract text from image using OCR"""
+    try:
+        image = Image.open(image_path)
+        text_content = image_utils.scan_image_for_text(image)
+        combined_text = "\n".join([
+            text_content["unmodified"],
+            text_content["auto_rotate"],
+            text_content["grayscaled"],
+            text_content["monochromed"],
+            text_content["mean_threshold"],
+            text_content["gaussian_threshold"],
+            text_content["deskewed_1"],
+            text_content["deskewed_2"],
+            text_content["deskewed_3"]
+        ])
+        return combined_text
+    except Exception as e:
+        return f"OCR Error: {str(e)}"
 
 def get_formatted_text_info(text):
-    """Extracts formatted information from the given text using Google Gemini API."""
-    
+    """Extract structured data using Gemini API"""
     prompt = f"""
-    Extract the following details from the given text and return a JSON response:
-    - document_type (e.g., Aadhaar Card (12digit), Voter ID (10 digit), Driving License (15 digit), Debit Card (16 digit), Credit Card (16 digit), PAN Card (10 digit), Passport (8 digit))
-    - name
+    Extract the following details from the text and return JSON:
+    - document_type (Aadhaar, PAN, Driving License, Credit Card, Passport)
     - country
-    - Document id (if applicable)
+    - document_id
     - email
     - phone_no
     - address
-    - DOB
-    - Gender
-    - Expiry Date(if applicable)
+    - dob
+    - gender
+    - expiry_date
 
     Text: {text}
-    
-    Return the response in JSON format.
-    """
 
+    Return JSON with only these keys in lowercase. If not found, use empty string.
+    """
+    
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")  # ✅ Use the correct model
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
         response = model.generate_content(prompt)
-        return response.text
+        cleaned_response = re.sub(r'```json|```', '', response.text).strip()
+        return json.loads(cleaned_response)
     except Exception as e:
         return {"error": str(e)}
-
-def get_json_data(response):
-    cleaned_result = re.sub(r"```json|\n```", "", response).strip()
-    if cleaned_result and cleaned_result.strip():  # Ensure it's not empty
-        try:
-            result_json = json.loads(cleaned_result)  # Convert to Python dictionary
-            print("Parsed JSON:", result_json)
-            return result_json
-        except json.JSONDecodeError as e:
-            print("Error parsing JSON:", e)
-            result_json = {}  # Default to an empty dictionary
-            return result_json
-    else:
-        print("Error: Received empty or invalid JSON response")
-        result_json = {}
-        return result_json
-
-
+    
 def save_to_csv(user_id, processed_data):
     """Save extracted data to CSV file with proper error handling"""
     fieldnames = ['user_id', 'document_type', 'country', 'document_id',
@@ -172,23 +138,18 @@ def save_to_csv(user_id, processed_data):
         print(f"CSV Save Error: {str(e)}")
         print(f"Failed data: {row_data}")  # Debugging output
         return False
-
-
+    
 def mask_image(image_path, result_json):
     image = cv2.imread(image_path)
-    
-    # Sensitive information to mask
     sensitive_info = [
-        result_json.get("name"), 
-        result_json.get("Document id"), 
-        result_json.get("phone_no"), 
-        result_json.get("address"), 
-        result_json.get("DOB"), 
-        result_json.get("Expiry Date")
+        str(result_json.get("document_id", "")),
+        str(result_json.get("phone_no", "")),
+        str(result_json.get("address", "")),
+        str(result_json.get("dob", "")),
+        str(result_json.get("expiry_date", ""))
     ]
     sensitive_info = [str(info) for info in sensitive_info if info is not None]
-    
-    # Break sensitive info into smaller chunks
+
     chunks = []
     for info in sensitive_info:
         # Add the whole string
@@ -231,12 +192,12 @@ def mask_image(image_path, result_json):
                 # Replace the original ROI with the blurred ROI
                 image[y_min:y_max, x_min:x_max] = blurred_roi
                 break
-                
+    
     masked_path = os.path.join(os.path.dirname(image_path), "masked_" + os.path.basename(image_path))
     cv2.imwrite(masked_path, image)
     return masked_path
 
-@app.route('/proceed', methods=['POST'])
+@app.route('/proceed', methods=['POST', 'GET'])
 def handle_proceed():
     try:
         # Add any final processing logic here
@@ -255,7 +216,74 @@ def serve_file(user_id, filename):
         filename
     )
 
-@app.route('/mask', methods=['POST'])
+@app.route('/documents', methods=['POST', 'GET'])
+def view_documents():
+    # Get user_id from session or request args
+    user_id = session.get('current_user_id')
+    if not user_id:
+        flash('Please upload a document first to access this page', 'error')
+        return redirect(url_for('home'))
+
+    sanitized_id = sanitize_user_id(user_id)
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], sanitized_id)
+    
+    # Get list of documents
+    documents = []
+    if os.path.exists(user_folder):
+        documents = [f for f in os.listdir(user_folder) if os.path.isfile(os.path.join(user_folder, f))]
+    
+    # Pagination logic
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    total_pages = (len(documents) + per_page - 1) // per_page
+    
+    return render_template('documents.html',
+                         documents=documents[(page-1)*per_page : page*per_page],
+                         current_page=page,
+                         total_pages=total_pages,
+                         user_id=user_id)
+
+def get_upload_time(user_id, filename):
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], sanitize_user_id(user_id))
+    file_path = os.path.join(user_folder, filename)
+    return datetime.fromtimestamp(os.path.getctime(file_path))
+
+@app.route('/download/<user_id>/<filename>')
+def download_document(user_id, filename):
+    sanitized_id = sanitize_user_id(user_id)
+    directory = os.path.join(app.config['UPLOAD_FOLDER'], sanitized_id)
+    return send_from_directory(directory, filename, as_attachment=True)
+
+# Add this after get_upload_time function
+@app.context_processor
+def inject_utilities():
+    """Make utility functions available in templates"""
+    return {
+        'get_upload_time': get_upload_time
+    }
+
+# Update existing template filter with error handling
+@app.template_filter('formatdatetime')
+def format_datetime(value, fmt):
+    """Custom datetime formatting filter"""
+    if not value:
+        return "Unknown"
+    try:
+        return value.strftime(fmt)
+    except AttributeError:
+        return "Invalid date"
+    
+def get_upload_time(user_id, filename):
+    """Get file creation time with error handling"""
+    try:
+        user_folder = os.path.join(app.config['UPLOAD_FOLDER'], sanitize_user_id(user_id))
+        file_path = os.path.join(user_folder, filename)
+        return datetime.fromtimestamp(os.path.getctime(file_path))
+    except Exception as e:
+        app.logger.error(f"Error getting upload time: {str(e)}")
+        return None
+
+@app.route('/mask', methods=['POST', 'GET'])
 def handle_mask():
     try:
         user_id = request.form['user_id']
@@ -284,11 +312,16 @@ def handle_mask():
         flash(f'Masking failed: {str(e)}', 'error')
         return redirect(url_for('home'))
     
-@app.route('/cancel', methods=['POST'])
+@app.route('/cancel', methods=['POST', 'GET'])
 def cancel_preview():
     session.pop('preview_data', None)
     flash('Preview canceled', 'info')
     return redirect(url_for('home'))
+
+# Add this after get_upload_time function
+@app.template_filter('formatdatetime')
+def format_datetime(value, format):
+    return value.strftime(format)
 
 @app.route('/upload', methods=['POST','GET'])
 def handle_upload():
@@ -304,6 +337,7 @@ def handle_upload():
 
         # Sanitize inputs
         sanitized_user_id = sanitize_user_id(user_id)
+        session['current_user_id'] = sanitized_user_id
         filename = secure_filename(request.files['file1'].filename)  # Now using secure_filename
 
         # Validate file
@@ -330,7 +364,7 @@ def handle_upload():
         file.save(file_path)
 
         # Process document
-        extracted_text = extract_text_from_image(file_path)
+        extracted_text = perform_ocr(file_path)
         if not extracted_text:
             flash('Failed to extract text from document', 'error')
             return redirect(url_for('home'))
@@ -340,6 +374,9 @@ def handle_upload():
         if 'error' in processed_data:
             flash(f'Data processing error: {processed_data["error"]}', 'error')
             return redirect(url_for('home'))
+        
+        if (sum(1 for value in processed_data.values() if value not in [None, "", "N/A"]) > 0):
+            flash(f'Data Contains Sensitive and Private Information', 'error')
 
         # Save to CSV
         if save_to_csv(sanitized_user_id, processed_data):
@@ -361,8 +398,8 @@ def handle_upload():
         flash(f'Unexpected error: {str(e)}', 'error')
         return redirect(url_for('home'))
 
-
 if __name__ == '__main__':
+    app.config['SESSION_PERMANENT'] = True
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour expiration
     app.run(debug=True)
-
 
